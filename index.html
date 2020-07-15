@@ -1,0 +1,451 @@
+
+<html>
+
+    <head>
+        <title>BAM Calculator</title>
+        <link rel="icon" href="img/BAM1.png">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <style>
+            @font-face {
+                font-family: 'FutureFight';
+                src: url('font/MFF_Font.ttf');
+            }
+    
+            * {
+                margin: 0px;
+                padding: 0px;
+                box-sizing: border-box;
+                color: #fff;
+                letter-spacing: 0px;
+            }
+    
+            html {
+                background: url('img/title.png') no-repeat;
+                background-size: 100% 100%;
+                height: 100%;
+                font-family: 'FutureFight';
+                left: 0;
+                right: 0;
+                top: 0;
+                bottom: 0;
+                overflow: hidden;
+            }
+    
+            body {
+                overflow-y: scroll;
+                position: absolute;
+                top: 0;
+                bottom: 0;
+                left: 0;
+                right: 0;
+            }
+    
+            .modal {
+                background: #294173;
+                position: relative;
+                left: 50%;
+                margin: 50px 0px 50px -265px;
+                width: 530px;
+                padding: 10px;
+                border: 2px solid #132b44;
+                -moz-user-select: none;
+                -webkit-user-select: none;
+                -ms-user-select: none;
+                user-select: none;
+            }
+    
+            .modal .title {
+                font-size: 25px;
+                padding: 5px;
+                padding-top: 0px;
+                box-shadow: 0 1px 0 0px #3d517f,
+                0 2px 0 0px #304878;
+                margin-bottom: 10px;
+                text-align: center;
+            }
+    
+            .modal .footer {
+                background: #101c29;
+                margin: -10px;
+                margin-top: 0px;
+                padding: 10px;
+            }
+    
+            .modal .content {
+                background: #182031;
+                margin-bottom: 10px;
+                padding: 10px;
+                box-shadow: 0 0 3px 0px #000 inset;
+            }
+    
+            .button {
+                display: inline-block;
+                height: 30px;
+                padding: 7px;
+                min-width: 160px;
+                text-align: center;
+                background-image: linear-gradient(#5e80c4, #334c96);
+            }
+    
+            .button:hover {
+                cursor: pointer;
+            }
+    
+            .button.cancel {
+                background-image: linear-gradient(#df4646, #8a1f1f);
+            }
+    
+            .button.cancel.disable {
+                background-image: linear-gradient(#af3636, #581414);
+                color: #ccc;
+            }
+    
+            .totalCount {
+                position: relative;
+                display: inline-block;
+                height: 30px;
+                background: rgba(0, 0, 0, 0.75);
+                padding: 7px;
+                margin-left: 10px;
+                width: 150px;
+                text-align: right;
+                margin-right: 10px;
+            }
+    
+            .totalCount img {
+                float: left;
+                position: relative;
+                left: -20px;
+                top: -10px;
+                width: 40px;
+                height: 40px;
+            }
+    
+            .itemFrame {
+                display: inline-block;
+                background: url('img/BgItem.png') no-repeat;
+                background-size: 100% 100%;
+                padding: 10px;
+                height: 100px;
+                width: 120px;
+                text-align: center;
+                position: relative;
+                z-index: 100;
+            }
+    
+            .itemFrame .itemCount {
+                position: absolute;
+                bottom: 5px;
+                right: 8px;
+            }
+    
+            .bamLine {
+                margin-bottom: 5px;
+            }
+    
+            .bamController {
+                position: relative;
+                z-index: 99;
+                display: block;
+                width: 100%;
+                padding: 10px;
+                padding-left: 145px;
+                margin-top: -100px;
+                background: rgba(0, 0, 0, 0.25);
+                height: 100px;
+                letter-spacing: 5px;
+            }
+    
+            .bamController .totalCount {
+                position: absolute;
+                bottom: 10px;
+                left: 145px;
+            }
+    
+            .countSpinner {
+                background: rgba(0, 0, 0, 0.75);
+                display: inline-block;
+                height: 30px;
+                min-width: 160px;
+                padding: 7px;
+                text-align: center;
+            }
+    
+            .countSpinner div {
+                display: inline-block;
+            }
+    
+            .countSpinner .decrease {
+                width: 30px;
+                height: 30px;
+                background: url('img/Buttons.png');
+                background-size: 93px;
+                margin: -7px;
+                margin-right: 5px;
+                float: left;
+                background-position: -30px 0px;
+            }
+    
+            .countSpinner .increase {
+                width: 30px;
+                height: 30px;
+                background: url('img/Buttons.png');
+                background-size: 93px;
+                margin: -7px;
+                margin-left: 5px;
+                float: right;
+            }
+    
+            .countSpinner .increase:hover,
+            .countSpinner .decrease:hover {
+                cursor: pointer;
+            }
+    
+            .countSpinner .disable {
+                background-position-y: -30px;
+            }
+    
+            .countSpinner .disable:hover {
+                cursor: initial;
+            }
+        </style>
+    
+        <script>
+            var precoBam = [0, 0, 125000, 187500, 250000, 312500, 375000];
+    
+            function numberFormat(_number, _sep) {
+                _number = typeof _number != "undefined" && _number > 0 ? String(_number) : "";
+                _number = _number.replace(new RegExp("^(\\d{" + (_number.length % 3 ? _number.length % 3 : 0) + "})(\\d{3})", "g"), "$1 $2").replace(/(\d{3})+?/gi, "$1 ").trim();
+                if (typeof _sep != "undefined" && _sep != " ") {
+                    _number = _number.replace(/\s/g, _sep);
+                }
+                return _number == 0 ? "0" : _number;
+            }
+    
+            function atualizaTotal() {
+                var goldTotal = 0;
+                var bamTotal = 0;
+    
+                for (var i = 2; i <= 6; i++) {
+                    var obj = $("[data-bam=" + (+i) + "]");
+    
+                    if (i == 2)
+                        bamTotal = 50 * +(obj.find(".count").html());
+    
+                    goldTotal += +(obj.find("#totalGold").html().replace(/(\D)/g, ""));
+    
+                    var thisBam = obj.find("#BAMCount").html();
+                    obj.find(".decrease").removeClass("disable");
+                    obj.find(".button.cancel").removeClass("disable");
+    
+                    if (+thisBam <= 0) {
+                        obj.find(".decrease").addClass("disable");
+                        obj.find(".button.cancel").addClass("disable");
+                    }
+                }
+    
+                $("#totalGoldBAM").html(numberFormat(goldTotal, "."));
+                $("#totalBAM").html(numberFormat(bamTotal, "."));
+            };
+    
+            function addOneBam(num, quant, nextBam) {
+                if (num == 1) {
+                    return;
+                }
+    
+                var parent = $("[data-bam=" + num + "]");
+    
+                var quantidadeAtual = parent.find(".count").html();
+                quantidadeAtual = quant + +quantidadeAtual;
+                if (quantidadeAtual < 0)
+                    quantidadeAtual = 0;
+                quantidadeExtra = quantidadeAtual;
+    
+                if (num < 6) {
+                    var parentProximo = $("[data-bam=" + (+num + 1) + "]");
+                    var quantidadeProximo = parentProximo.find(".count").html();
+                    quantidadeExtra -= +quantidadeProximo * 2;
+                }
+    
+                if (quantidadeExtra < 0)
+                    return;
+    
+                parent.find(".count").html(quantidadeAtual);
+                parent.find("#BAMCount").html(quantidadeExtra);
+                parent.find("#totalGold").html(numberFormat(+quantidadeAtual * precoBam[num], "."));
+    
+                atualizaTotal();
+    
+                if (nextBam === true)
+                    addOneBam(num - 1, quant * 2, true);
+            };
+    
+            function resetBam(num, nextBam) {
+                if (num == 1) {
+                    return;
+                }
+    
+                var parent = $("[data-bam=" + num + "]");
+                
+                var quantidadeExtra = parent.find("#BAMCount").html();
+                var quantidadeAtual = parent.find(".count").html();
+    
+                if (+quantidadeExtra > 0)
+                {
+                    var sobra = +quantidadeExtra;
+                    quantidadeAtual = +quantidadeAtual - sobra;
+                    quantidadeExtra = 0;
+                    
+                    parent.find(".count").html(quantidadeAtual);
+                    parent.find("#BAMCount").html(quantidadeExtra);
+                    parent.find("#totalGold").html(numberFormat(+quantidadeAtual * precoBam[num], "."));
+                    
+                    addOneBam(num-1, sobra *-2, true);
+                }
+    
+                atualizaTotal();
+    
+                if (nextBam === true)
+                    resetBam(num - 1, true);
+            }
+    
+            $(function () {
+                $("[data-bam]").on("click", ".increase", function () {
+                    addOneBam($(this).parents("[data-bam]").attr("data-bam"), 1, true);
+                });
+    
+                $("[data-bam]").on("click", ".decrease", function () {
+                    if ($(this).hasClass("disable"))
+                        return;
+                    addOneBam($(this).parents("[data-bam]").attr("data-bam"), -1, true);
+                });
+    
+                $("[data-bam]").on("click", ".button.cancel", function () {
+                    if ($(this).hasClass("disable"))
+                        return;
+                    resetBam($(this).parents("[data-bam]").attr("data-bam"), false);
+                });
+    
+                $("div.footer").on("click", ".button.cancel", function () {
+                    resetBam(6, true);
+                });
+            });
+        </script>
+    </head>
+    
+    <body>
+        <div class="modal bamCalculator">
+            <div class="title">BAM Calculator</div>
+            <div class="content">
+    
+                <div class="bamLine" data-bam="2">
+                    <div class="itemFrame">
+                        <img src="img/BAM2.png" />
+                        <div class="itemCount" id="BAMCount">0</div>
+                    </div>
+                    <div class="BAMController">
+                        <div class="countSpinner">
+                            <div class="decrease disable"></div>
+                            <div class="count">0</div>
+                            <div class="increase"></div>
+                        </div>
+                        <div class="button cancel disable">RESET</div>
+                        <div class="totalCount">
+                            <img class='total' src="img/GoldCoin.png" />
+                            <div id="totalGold">0</div>
+                        </div>
+                    </div>
+                </div>
+    
+                <div class="bamLine" data-bam="3">
+                    <div class="itemFrame">
+                        <img src="img/BAM3.png" />
+                        <div class="itemCount" id="BAMCount">0</div>
+                    </div>
+                    <div class="BAMController">
+                        <div class="countSpinner">
+                            <div class="decrease disable"></div>
+                            <div class="count">0</div>
+                            <div class="increase"></div>
+                        </div>
+                        <div class="button cancel disable">RESET</div>
+                        <div class="totalCount">
+                            <img class='total' src="img/GoldCoin.png" />
+                            <div id="totalGold">0</div>
+                        </div>
+                    </div>
+                </div>
+    
+                <div class="bamLine" data-bam="4">
+                    <div class="itemFrame">
+                        <img src="img/BAM4.png" />
+                        <div class="itemCount" id="BAMCount">0</div>
+                    </div>
+                    <div class="BAMController">
+                        <div class="countSpinner">
+                            <div class="decrease disable"></div>
+                            <div class="count">0</div>
+                            <div class="increase"></div>
+                        </div>
+                        <div class="button cancel disable">RESET</div>
+                        <div class="totalCount">
+                            <img class='total' src="img/GoldCoin.png" />
+                            <div id="totalGold">0</div>
+                        </div>
+                    </div>
+                </div>
+    
+                <div class="bamLine" data-bam="5">
+                    <div class="itemFrame">
+                        <img src="img/BAM5.png" />
+                        <div class="itemCount" id="BAMCount">0</div>
+                    </div>
+                    <div class="BAMController">
+                        <div class="countSpinner">
+                            <div class="decrease disable"></div>
+                            <div class="count">0</div>
+                            <div class="increase"></div>
+                        </div>
+                        <div class="button cancel disable">RESET</div>
+                        <div class="totalCount">
+                            <img class='total' src="img/GoldCoin.png" />
+                            <div id="totalGold">0</div>
+                        </div>
+                    </div>
+                </div>
+    
+                <div class="bamLine" data-bam="6" style="margin-bottom: 0px;">
+                    <div class="itemFrame">
+                        <img src="img/BAM6.png" />
+                        <div class="itemCount" id="BAMCount">0</div>
+                    </div>
+                    <div class="BAMController">
+                        <div class="countSpinner">
+                            <div class="decrease disable"></div>
+                            <div class="count">0</div>
+                            <div class="increase"></div>
+                        </div>
+                        <div class="button cancel disable">RESET</div>
+                        <div class="totalCount">
+                            <img class='total' src="img/GoldCoin.png" />
+                            <div id="totalGold">0</div>
+                        </div>
+                    </div>
+                </div>
+    
+            </div>
+            <div class="footer">
+                <div class="totalCount">
+                    <img class='total' src="img/GoldCoin.png" />
+                    <div id="totalGoldBAM">0</div>
+                </div>
+                <div class="totalCount">
+                    <img class='total' src="img/BAM1.png" />
+                    <div id="totalBAM">0</div>
+                </div>
+                <div class="button cancel">RESET ALL</div>
+            </div>
+        </div>
+    </body>
+    
+    </html>
